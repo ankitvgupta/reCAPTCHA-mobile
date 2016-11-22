@@ -76,7 +76,7 @@ def main():
       message2 = service.users().messages().get(userId='me', id=message["id"]).execute()
       if "data" in message2["payload"]["body"].keys():
         decoded.append(base64.b64decode(message2["payload"]["body"]["data"]))
-    print(decoded[4])
+    print(decoded)
     #print(messages)
     #print(results)
     # results = service.users().labels().list(userId='me').execute()
