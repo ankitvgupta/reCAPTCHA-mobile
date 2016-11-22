@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ladda-themeless.min.css') }}">
+<script src="{{ url_for('static', filename='js/spin.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ladda.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+<style>
+button:hover{
+    background:olive;
+}
+</style>
+</head>
+
+<body>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+  <a href="#" id="captcha" class="btn btn-primary btn-lg ladda-button" data-style="expand-left" data-size="l"><span class="ladda-label">I am not a robot</span></a>
+        <br>
+        <br>
+        <span id="acceleration"></span>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+Ladda.bind( 'input[type=submit]' );
+$(function() {
+  $('#captcha').click(function(e){
+    e.preventDefault();
+    var l = Ladda.create(this);
+    l.start();
+
+  var motionEvents = [];
+
+  if (window.DeviceMotionEvent != undefined) {
+    window.ondevicemotion = function(e) {
+      var me = {};
+      
+      me.x = e.accelerationIncludingGravity.x;
+      me.y = e.accelerationIncludingGravity.y;
+      me.z = e.accelerationIncludingGravity.z;
+
+      if ( e.rotationRate ) {
+        me.alpha = e.rotationRate.alpha;
+        me.beta = e.rotationRate.beta;
+        me.gamma = e.rotationRate.gamma;
+      }
+
+      motionEvents.push(me);
+    }
+  }
+
+  setTimeout(function() {
+    window.ondevicemotion = function() {};
+
+    $.post("/record",
+      { 'motionData' : JSON.stringify(motionEvents)}, 
+      function(reponse) {
+        console.log(reponse);
+        l.stop();
+        $("#captcha").queue(function() {
+          $("#captcha").removeClass("btn-primary");
+          $("#captcha").addClass("btn-success");
+          $("#captcha").html("Data received!");
+        });
+      })
+    .error(function() {
+      l.stop();
+      $("#captcha").queue(function() {
+        $("#captcha").removeClass("btn-primary");
+        $("#captcha").addClass("btn-danger");
+        $("#captcha").html("Error");
+      });
+    });
+  }, 5000);
+
+  });
+});
+
+</script>
+
+</body>
+</html>
