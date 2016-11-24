@@ -1,0 +1,34 @@
+<html>
+<head>
+<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+
+<script type="text/javascript">
+$(function() {
+	$('#submit').click(function(e) {
+		$.post("/new_registration",
+			{ 'domains' : $('#domains').val() },
+			function(response) {
+				response = jQuery.parseJSON(response);
+				console.log(response);
+				$("#keys").html("SiteID: " + response.siteID + "<br>" + 
+					"Site secret (<b>keep this secret</b>): " + response.secret);
+			})
+		.error(function(xhr, ajaxOptions, thrownError) {
+			$("#keys").html("Error registering: <i>" + xhr.responseText + "</i>");
+			console.log(xhr.status);
+			console.log(xhr.responseText);
+		})
+	});
+});
+</script>
+
+</head>
+<body>
+  Enter domain names to register on separate lines (not more than 10):<br>
+  <textarea id="domains" rows="10" cols="50"></textarea>
+  <br><br>
+  <button id="submit">Register</button>
+  <br><br>
+  <div id="keys"></div>
+</body>
+</html>
