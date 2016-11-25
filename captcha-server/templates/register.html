@@ -6,7 +6,8 @@
 $(function() {
 	$('#submit').click(function(e) {
 		$.post("/new_registration",
-			{ 'domains' : $('#domains').val() },
+			{ 'domains' : $('#domains').val(),
+				'label'   : $('#label').val() },
 			function(response) {
 				response = jQuery.parseJSON(response);
 				console.log(response);
@@ -24,11 +25,48 @@ $(function() {
 
 </head>
 <body>
-  Enter domain names to register on separate lines (not more than 10):<br>
-  <textarea id="domains" rows="10" cols="50"></textarea>
-  <br><br>
-  <button id="submit">Register</button>
-  <br><br>
-  <div id="keys"></div>
+	Hello, <b>{{ session.email }}</b>!
+	<br><br>
+
+	{% if not registrations %}
+    You don't have any keys registered yet!
+    <br><br>
+  {% else %}
+    You have <b>{{ registrations|length }}</b> keys registered!
+
+    <ol>
+    {% for r in registrations %}
+	    <li><b>{{ r[0] }}</b>:
+	    	<ul>
+	    		<li><i>SiteID</i>: {{ r[1] }}</li>
+	    		<li><i>Secret</i>: {{ r[2] }}</li>
+	    		<li><i>Domains</i>:
+	    			<ul>
+	    			{% for d in r[3] %}
+	    				<li>{{ d }}</li>
+	    			{% endfor %}
+	    			</ul>
+	    		</li>
+	    	</ul>
+	    </li>
+	  {% endfor %}
+	  </ol>
+  {% endif %}
+
+  {% if registrations|length < maxperuser %}
+	Would you like to sign up for a new key?
+		<br><br>
+		Label:<br>
+	  <input type="text" id="label" size="50"/>
+	  <br><br>
+	  Enter domain names to register on separate lines (not more than 10):<br>
+	  <textarea id="domains" rows="10" cols="50"></textarea>
+	  <br><br>
+	  <button id="submit">Register</button>
+	  <br><br>
+	  <div id="keys"></div>
+	{% else %}
+	You've signed up for the maximum allowed number of keys.
+	{% endif %}
 </body>
 </html>

@@ -1,1 +1,2 @@
 captcha-server/secrets.json
+captcha-server/*.db
