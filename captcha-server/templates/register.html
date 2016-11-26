@@ -10,14 +10,30 @@ $(function() {
 				'label'   : $('#label').val() },
 			function(response) {
 				response = jQuery.parseJSON(response);
-				console.log(response);
 				$("#keys").html("SiteID: " + response.siteID + "<br>" + 
 					"Site secret (<b>keep this secret</b>): " + response.secret);
+				setInterval(function() {
+					window.location.reload()
+				}, 2000);
 			})
 		.error(function(xhr, ajaxOptions, thrownError) {
 			$("#keys").html("Error registering: <i>" + xhr.responseText + "</i>");
-			console.log(xhr.status);
-			console.log(xhr.responseText);
+		})
+	});
+
+	$('.delete').click(function(e) {
+		var that = this;
+		$.post("/delete",
+			{ 'siteID' : this.id },
+			function(response) {
+				$("#keys").html("Successfully deleted registration for SiteID: " + that.id);
+
+				setInterval(function() {
+					window.location.reload()
+				}, 2000);
+			})
+		.error(function(xhr, ajaxOptions, thrownError) {
+			$("#keys").html("Error deleting: <i>" + xhr.responseText + "</i>");
 		})
 	});
 });
@@ -36,7 +52,7 @@ $(function() {
 
     <ol>
     {% for r in registrations %}
-	    <li><b>{{ r[0] }}</b>:
+	    <li><b>{{ r[0] }}  <button class="delete" id="{{ r[1] }}">Delete</button></b>:
 	    	<ul>
 	    		<li><i>SiteID</i>: {{ r[1] }}</li>
 	    		<li><i>Secret</i>: {{ r[2] }}</li>
@@ -53,7 +69,7 @@ $(function() {
 	  </ol>
   {% endif %}
 
-  {% if registrations|length < maxperuser %}
+  {% if not registrations or registrations|length < maxperuser %}
 	Would you like to sign up for a new key?
 		<br><br>
 		Label:<br>

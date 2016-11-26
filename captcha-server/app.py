@@ -89,6 +89,43 @@ def register():
                             registrations=registrations,
                             maxperuser=MAXPERUSER)
 
+@app.route('/delete', methods=['POST'])
+def delete_registration():
+    if 'login_token' not in session or 'email' not in session:
+        return redirect(url_for('login'))
+
+    siteID = request.form['siteID']
+
+    user_db = pickledb.load(USERS_DB, False)
+    site_db = pickledb.load(SITES_DB, False)
+
+    regs = user_db.get(session['email'])
+
+    if regs is None:
+        return "User has no registered keys", 403
+
+    found = False
+    for i, r in enumerate(regs):
+        if r[1] == siteID:
+            del regs[i]
+            found = True
+            break
+
+    if not found:
+        return "SiteID does not belong to user", 403
+
+    site = site_db.get(siteID)
+    if site is None:
+        return "SiteID not found", 403
+
+    user_db.set(session['email'], regs)
+    site_db.rem(siteID)
+
+    user_db.dump()
+    site_db.dump()
+
+    return "OK"
+
 @app.route('/new_registration', methods=['POST'])
 def new_registration():
     if 'login_token' not in session or 'email' not in session:
@@ -125,7 +162,7 @@ def new_registration():
     site_db = pickledb.load(SITES_DB, False)
 
     registrations = user_db.get(email)
-    if (len(registrations) >= MAXPERUSER):
+    if (registrations and len(registrations) >= MAXPERUSER):
         return "Signed up for max keys", 403
 
     pair = newKeyPair(site_db)
