@@ -2,13 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_oauth import OAuth
 
 from Crypto.Random import random
-import json
-import pickledb
-from urllib2 import Request, urlopen, URLError
+import datetime, dateutil.parser, json, pickledb
 
 KEYLENGTH = 40
+TOKENLENGTH = 420
 MAXDOMAINS = 10
 MAXPERUSER = 5
+TOKEN_LIFE_SECONDS = 60
 
 with open('secrets.json') as secrets:
     data = json.loads(secrets.read())
@@ -20,6 +20,7 @@ REDIRECT_URI = '/oauth2callback'
 
 SITES_DB = 'sites.db'
 USERS_DB = 'users.db'
+TOKENS_DB = 'tokens.db'
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -126,15 +127,16 @@ def delete_registration():
 
     return "OK"
 
+
+def randomString(length):
+    import string
+    charset = string.ascii_letters + string.digits + '-_!'
+    return ''.join(random.choice(charset) for _ in range(length))
+
 @app.route('/new_registration', methods=['POST'])
 def new_registration():
     if 'login_token' not in session or 'email' not in session:
         return redirect(url_for('login'))
-
-    def randomString(length):
-        import string
-        charset = string.ascii_letters + string.digits + '-_!'
-        return ''.join(random.choice(charset) for _ in range(length))
 
     def newKeyPair(db):
         while True:
@@ -160,6 +162,7 @@ def new_registration():
     email = session['email']
     user_db = pickledb.load(USERS_DB, False)
     site_db = pickledb.load(SITES_DB, False)
+    token_db = pickledb.load(TOKENS_DB, False)
 
     registrations = user_db.get(email)
     if (registrations and len(registrations) >= MAXPERUSER):
@@ -170,16 +173,75 @@ def new_registration():
     site_db.set(pair[0], (str(label), pair[1], domains))
     site_db.dump()
 
-
     if registrations == None:
         user_db.set(email, [(str(label), pair[0], pair[1], domains)])
     else:
          user_db.set(email, registrations + [(str(label), pair[0], pair[1], domains)])
     user_db.dump()
 
+    token_db.set(pair[0], [])
+    token_db.dump()
+
     response = json.dumps({'siteID': pair[0], 'secret': pair[1]})
 
     return response
+
+@app.route('/token', methods=['POST'])
+def token():
+    siteID = request.form['siteID']
+    data = request.form['data']
+
+    token_db = pickledb.load(TOKENS_DB, False)
+    token_list = token_db.get(siteID) 
+
+    if token_list is None:
+        return "Invalid siteID", 400
+
+    def validate_data(x):
+        return (x % 2 == 0)
+
+    try:
+        token = randomString(TOKENLENGTH)
+        data = int(data)
+        if validate_data(data):
+            time = datetime.datetime.now().isoformat()
+            token_list.append((token,time))
+
+            token_db.set(siteID, token_list)
+            token_db.dump()
+            return token, 200
+        else:
+            return token, 200
+    except ValueError:
+        return "Invalid data", 400
+
+@app.route('/verify', methods=['POST'])
+def verify():
+    siteID = request.form['siteID']
+    secret = request.form['secret']
+    token = request.form['token']
+
+    site_db = pickledb.load(SITES_DB, False)
+    site = site_db.get(siteID)
+
+    if site is None:
+        return "invalid siteID", 400
+
+    token_db = pickledb.load(TOKENS_DB, False)
+    tokens = token_db.get(siteID)
+    for i, t in enumerate(tokens):
+        if t[0] == token:
+            del tokens[i]
+            token_db.set(siteID, tokens)
+            token_db.dump()
+
+            time = dateutil.parser.parse(t[1])
+            if (datetime.datetime.now() - time).total_seconds() < TOKEN_LIFE_SECONDS:
+                return "OK", 200
+            else:
+                return "Expired token", 403
+
+    return "Invalid token", 403
 
 if __name__ == '__main__':
     app.run(debug=True)
