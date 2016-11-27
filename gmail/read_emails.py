@@ -7,6 +7,7 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+import numpy as np
 
 try:
     import argparse
@@ -74,9 +75,18 @@ def main():
     decoded = []
     for message in messages:
       message2 = service.users().messages().get(userId='me', id=message["id"]).execute()
+      subject = ""
+      for header in message2["payload"]["headers"]:
+        if header["name"] == "Subject":
+          subject = header["value"]
       if "data" in message2["payload"]["body"].keys():
-        decoded.append(base64.b64decode(message2["payload"]["body"]["data"]))
-    print(decoded)
+        decoded.append([
+          subject,
+          base64.b64decode(message2["payload"]["body"]["data"])
+        ])
+
+    np.save('data.npy', decoded)
+
     #print(messages)
     #print(results)
     # results = service.users().labels().list(userId='me').execute()
