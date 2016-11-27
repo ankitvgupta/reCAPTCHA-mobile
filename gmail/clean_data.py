@@ -37,8 +37,8 @@ for message in data:
             if clean_line:
                 clean_entry.append(clean_line)
             
-        if clean_entry:
-            clean_data.append(clean_entry)
+        if len(clean_entry) >= 260:
+            clean_data.append(clean_entry[:260])
             labels.append(klass)
 
 np.save('clean_data.npy', clean_data)
