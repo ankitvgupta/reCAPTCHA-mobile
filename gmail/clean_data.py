@@ -26,7 +26,7 @@ def get_data(line):
 
 data = np.load('data.npy')
 
-clean_data = [[] for i in range(len(classes) + 1)]
+clean_data, labels = [], []
 for message in data:
     klass = classify(message)
     if klass != -1:
@@ -38,6 +38,8 @@ for message in data:
                 clean_entry.append(clean_line)
             
         if clean_entry:
-            clean_data[klass].append(clean_entry)
+            clean_data.append(clean_entry)
+            labels.append(klass)
 
 np.save('clean_data.npy', clean_data)
+np.save('labels.npy', labels)
