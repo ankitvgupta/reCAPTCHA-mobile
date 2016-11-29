@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.ops import rnn, rnn_cell
+import numpy as np
 
 def minibatcher(data_x, data_y, batch_size, num_repeats):
     assert(data_x.shape[0])
@@ -37,3 +38,20 @@ def RNN(x, weights, biases, n_input, n_steps, n_hidden, keep_prob):
     # Linear activation, using rnn inner loop last output
     # return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
+# time_steps should be an array of size num_steps x num_features
+def hash_sequence(time_steps, num_bins=100):
+
+	min_possible = np.array([ -15,   -15,  -50, -400, -400, -250])
+	max_possible = np.array([20, 30, 5, 400, 500, 300])
+	bin_sizes = (max_possible-min_possible)/np.float(num_bins)
+	summed = np.sum(time_steps, axis=0)
+	# Keep everything within the above bounds
+	for i, v in enumerate(summed):
+		if v < min_possible[i]:
+			summed[i] = min_possible[i]
+		elif v > max_possible[i]:
+			summed[i] = max_possible[i]
+	# determine the bins
+	binned = np.round((summed - min_possible)/bin_sizes)
+	x = str(binned)
+	return hash(x)
