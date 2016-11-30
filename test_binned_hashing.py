@@ -66,7 +66,7 @@ hash_val = hash_sequence(seq)
 new_hash = hash_val
 print(hash_val)
 while new_hash == hash_val:
-    noise = np.random.normal(noise_to_add, 1, seq.shape)
+    noise = np.random.normal(noise_to_add, .001, seq.shape)
     new_seq = seq + noise
     new_hash = hash_sequence(new_seq)
     noise_to_add += .001
