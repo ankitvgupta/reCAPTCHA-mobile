@@ -60,6 +60,19 @@ for i in range(input_motion_data.shape[0]):
 #print(np.min(mins, axis=0))
 #print(np.max(maxs, axis=0))
 
-print hash_sequence(X_train[0])
+seq = X_train[0]
+noise_to_add = 0.0
+hash_val = hash_sequence(seq)
+new_hash = hash_val
+print(hash_val)
+while new_hash == hash_val:
+    noise = np.random.normal(noise_to_add, .001, seq.shape)
+    new_seq = seq + noise
+    new_hash = hash_sequence(new_seq)
+    noise_to_add += .001
+print(noise_to_add)
+
+
+
 
 
