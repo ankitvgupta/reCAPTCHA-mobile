@@ -6,8 +6,7 @@
 $(function() {
 	$('#submit').click(function(e) {
 		$.post("/new_registration",
-			{ 'domains' : $('#domains').val(),
-				'label'   : $('#label').val() },
+			{ 'label'   : $('#label').val() },
 			function(response) {
 				response = jQuery.parseJSON(response);
 				$("#keys").html("SiteID: " + response.siteID + "<br>" + 
@@ -56,13 +55,6 @@ $(function() {
 	    	<ul>
 	    		<li><i>SiteID</i>: {{ r[1] }}</li>
 	    		<li><i>Secret</i>: {{ r[2] }}</li>
-	    		<li><i>Domains</i>:
-	    			<ul>
-	    			{% for d in r[3] %}
-	    				<li>{{ d }}</li>
-	    			{% endfor %}
-	    			</ul>
-	    		</li>
 	    	</ul>
 	    </li>
 	  {% endfor %}
@@ -74,9 +66,6 @@ $(function() {
 		<br><br>
 		Label:<br>
 	  <input type="text" id="label" size="50"/>
-	  <br><br>
-	  Enter domain names to register on separate lines (not more than 10):<br>
-	  <textarea id="domains" rows="10" cols="50"></textarea>
 	  <br><br>
 	  <button id="submit">Register</button>
 	  <br><br>

@@ -6,7 +6,6 @@ import datetime, dateutil.parser, json, pickledb
 
 KEYLENGTH = 40
 TOKENLENGTH = 420
-MAXDOMAINS = 10
 MAXPERUSER = 5
 TOKEN_LIFE_SECONDS = 60
 
@@ -37,11 +36,6 @@ google = oauth.remote_app('google',
                           access_token_params={'grant_type': 'authorization_code'},
                           consumer_key=GOOGLE_CLIENT_ID,
                           consumer_secret=GOOGLE_CLIENT_SECRET)
-
-@app.route('/')
-def clear():
-    session.clear()
-    return "OK"
 
 @app.route('/error')
 def error():
@@ -147,14 +141,6 @@ def new_registration():
         secret = randomString(KEYLENGTH)
         return siteID, secret
 
-    domains = request.form['domains']
-    if len(domains) == 0:
-        return "Must specify at least one domain", 400
-
-    domains = [s for s in [s.strip() for s in domains.split('\n')] if len(s) != 0]
-    if len(domains) > MAXDOMAINS:
-        return "Specified too many domains", 400
-
     label = request.form['label']
     if len(label) == 0:
         return "Must specify a label", 400
@@ -170,13 +156,13 @@ def new_registration():
 
     pair = newKeyPair(site_db)
 
-    site_db.set(pair[0], (str(label), pair[1], domains))
+    site_db.set(pair[0], (str(label), pair[1]))
     site_db.dump()
 
     if registrations == None:
-        user_db.set(email, [(str(label), pair[0], pair[1], domains)])
+        user_db.set(email, [(str(label), pair[0], pair[1])])
     else:
-         user_db.set(email, registrations + [(str(label), pair[0], pair[1], domains)])
+         user_db.set(email, registrations + [(str(label), pair[0], pair[1])])
     user_db.dump()
 
     token_db.set(pair[0], [])
@@ -226,6 +212,8 @@ def verify():
 
     if site is None:
         return "invalid siteID", 400
+    if site[1] != secret:
+        return "invalid secret", 403
 
     token_db = pickledb.load(TOKENS_DB, False)
     tokens = token_db.get(siteID)

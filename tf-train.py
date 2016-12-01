@@ -4,21 +4,31 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from util import minibatcher, RNN
 
-classes = ["walking", "sitting", "table", "stairs", "car"]
-
 n_hidden = 100 # Size of the LSTM hidden layer
 batch_size = 8 # Number of data points in a batch
 learning_rate = 0.01 # Learning rate of the optimizer
 dropout_keep_prob = .8
 
+model_type = 'robot'
 
 clean_data = np.load("gmail/clean_data.npy")
 data_labels = np.load("gmail/labels.npy")
+fake_data = np.load("gauss.npy")
 
-# Update the dataset to only be the labeled data (the ones that aren't 0)
-labeled = data_labels != 0
-input_motion_data = clean_data[labeled]
-output_motion_data = data_labels[labeled] - 1 # Need to decrement by 1 since we removed all the 0s
+if model_type == 'motion_type':
+    classes = ["walking", "sitting", "table", "stairs", "car"]
+    # Update the dataset to only be the labeled data (the ones that aren't 0)
+    labeled = data_labels != 0
+    input_motion_data = clean_data[labeled]
+    output_motion_data = data_labels[labeled] - 1 # Need to decrement by 1 since we removed all the 0s
+
+else:
+    classes = ["robot", "human"]
+    n_human = clean_data.shape[0]
+    n_robot = fake_data.shape[0]
+    input_motion_data = np.append(clean_data, fake_data, axis=0)
+    output_motion_data = np.append(np.ones(n_human), np.zeros(n_robot)).astype(int)
+
 n_samples = input_motion_data.shape[0]
 n_steps = input_motion_data.shape[1]
 n_input = input_motion_data.shape[2]
@@ -105,7 +115,7 @@ saver = tf.train.Saver()
 
 # In[19]:
 
-saver.save(sess, "model.ckpt")
+saver.save(sess, "gauss_model.ckpt")
 
 
 # In[21]:
