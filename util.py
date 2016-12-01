@@ -44,7 +44,7 @@ def hash_sequence(time_steps, num_bins=100):
 	min_possible = np.array([ -15,   -15,  -50, -400, -400, -250])
 	max_possible = np.array([20, 30, 5, 400, 500, 300])
 	bin_sizes = (max_possible-min_possible)/np.float(num_bins)
-	summed = np.sum(time_steps, axis=0)
+	summed = np.mean(time_steps, axis=0)
 	# Keep everything within the above bounds
 	for i, v in enumerate(summed):
 		if v < min_possible[i]:
