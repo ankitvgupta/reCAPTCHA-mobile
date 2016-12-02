@@ -1,2 +1,0 @@
-model_checkpoint_path: "spy_model.ckpt"
-all_model_checkpoint_paths: "spy_model.ckpt"
