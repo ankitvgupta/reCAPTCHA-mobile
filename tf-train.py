@@ -9,11 +9,12 @@ batch_size = 8 # Number of data points in a batch
 learning_rate = 0.01 # Learning rate of the optimizer
 dropout_keep_prob = .8
 
-model_type = 'robot'
+model_type = "motion_type"
+model_name = "spy_model"
 
 clean_data = np.load("gmail/clean_data.npy")
 data_labels = np.load("gmail/labels.npy")
-fake_data = np.load("gauss.npy")
+fake_data = np.load("hmm.npy")
 
 if model_type == 'motion_type':
     classes = ["walking", "sitting", "table", "stairs", "car"]
@@ -60,10 +61,10 @@ for x, y in zip(X_train_unfiltered, Y_train_unfiltered):
     num_in_class[class_of_sample] += 1
     loc += 1
 
-np.save("X_train", X_train)
-np.save("Y_train", Y_train)
-np.save("X_test", X_test)
-np.save("Y_test", Y_test)
+np.save("X_train_" + model_name, X_train)
+np.save("Y_train_" + model_name, Y_train)
+np.save("X_test_" + model_name, X_test)
+np.save("Y_test_" + model_name, Y_test)
 
 
 x = tf.placeholder("float", [None, n_steps, n_input])
@@ -115,7 +116,7 @@ saver = tf.train.Saver()
 
 # In[19]:
 
-saver.save(sess, "gauss_model.ckpt")
+saver.save(sess, model_name + ".ckpt")
 
 
 # In[21]:
