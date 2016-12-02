@@ -9,9 +9,9 @@ learning_rate = 0.01 # Learning rate of the optimizer
 dropout_keep_prob = .8
 
 # 'motion_type' for classifying different types of motion, 'robot' for classifying human vs. robot
-model_type = "motion_type" 
-model_name = "spy_model"
-fake_data_name = "hmm.npy"
+model_type = "robot" 
+model_name = "mix_model"
+fake_data_name = "mix.npy"
 
 clean_data = np.load("gmail/clean_data.npy")
 data_labels = np.load("gmail/labels.npy")
@@ -112,4 +112,4 @@ print "Final Test accuracy = " + "{:.5f}".format(final_test_acc)
 
 # Save model checkpoint
 saver = tf.train.Saver()
-saver.save(sess, "ckpt/" model_name + ".ckpt")
+saver.save(sess, "ckpt/" + model_name + ".ckpt")

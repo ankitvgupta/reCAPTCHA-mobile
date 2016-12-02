@@ -2,4 +2,3 @@ checkpoint
 *.pyc
 captcha-server/secrets.json
 captcha-server/*.db
-*.meta
