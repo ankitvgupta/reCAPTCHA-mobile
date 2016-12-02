@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-#from tensorflow.python.ops import rnn, rnn_cell
 from sklearn.model_selection import train_test_split
 from util import minibatcher, RNN
 
@@ -9,12 +8,14 @@ batch_size = 8 # Number of data points in a batch
 learning_rate = 0.01 # Learning rate of the optimizer
 dropout_keep_prob = .8
 
-model_type = "motion_type"
+# 'motion_type' for classifying different types of motion, 'robot' for classifying human vs. robot
+model_type = "motion_type" 
 model_name = "spy_model"
+fake_data_name = "hmm.npy"
 
 clean_data = np.load("gmail/clean_data.npy")
 data_labels = np.load("gmail/labels.npy")
-fake_data = np.load("hmm.npy")
+fake_data = np.load("npy/" + fake_data_name)
 
 if model_type == 'motion_type':
     classes = ["walking", "sitting", "table", "stairs", "car"]
@@ -61,10 +62,10 @@ for x, y in zip(X_train_unfiltered, Y_train_unfiltered):
     num_in_class[class_of_sample] += 1
     loc += 1
 
-np.save("X_train_" + model_name, X_train)
-np.save("Y_train_" + model_name, Y_train)
-np.save("X_test_" + model_name, X_test)
-np.save("Y_test_" + model_name, Y_test)
+np.save("npy/X_train_" + model_name, X_train)
+np.save("npy/Y_train_" + model_name, Y_train)
+np.save("npy/X_test_" + model_name, X_test)
+np.save("npy/Y_test_" + model_name, Y_test)
 
 
 x = tf.placeholder("float", [None, n_steps, n_input])
@@ -109,22 +110,6 @@ for (rep, (batch_x, batch_y)) in enumerate(minibatcher(X_train,Y_train,10, 20)):
 final_test_acc = sess.run(accuracy, feed_dict={x: X_test, y: Y_test, keep_prob: 1.0})
 print "Final Test accuracy = " + "{:.5f}".format(final_test_acc)
 
-# In[18]:
-
+# Save model checkpoint
 saver = tf.train.Saver()
-
-
-# In[19]:
-
-saver.save(sess, model_name + ".ckpt")
-
-
-# In[21]:
-
-sess.run(accuracy, feed_dict={x: X_test, y: Y_test, keep_prob: 1.0})
-
-
-# In[ ]:
-
-
-
+saver.save(sess, "ckpt/" model_name + ".ckpt")
